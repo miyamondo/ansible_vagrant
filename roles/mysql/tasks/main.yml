@@ -1,0 +1,52 @@
+- name: install mysql8.0
+  yum: name={{ item }} state=present
+  loop:
+    - "{{ MYSQL_VERSION }}"
+
+- name: install mysqld
+  yum: name={{ item }} state=installed 
+  loop:
+    - mysql-community-server
+
+- name: start mysqld
+  service: name=mysqld state=started enabled=yes
+
+- name: copy mysqld config
+  copy:
+    src: "roles/mysql/files/{{ item.src }}"
+    dest: "/etc/{{ item.dest }}"
+    owner: root
+    group: root
+    backup: no
+    mode: 644
+  loop:
+    - { src: my.cnf, dest: . }
+
+- name: Create directory /var/backup/mysql
+  file:
+    path: /var/backup/mysql
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: copy mysqld config
+  copy:
+    src: "roles/mysql/files/{{ item.src }}"
+    dest: "/var/backup/mysql/{{ item.dest }}"
+    owner: root
+    group: root
+    backup: no
+    mode: 644
+  loop:
+    - { src: backupmysql.sh, dest: . }
+  notify: restart mysqld
+
+- name: Add cron job
+  cron:
+    name: "Backup MySQL"
+    minute: "0"
+    hour: "0"
+    job: "/var/backup/backupmysql.sh"
+    user: root
+  notify: restart mysqld

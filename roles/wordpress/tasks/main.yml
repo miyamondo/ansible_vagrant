@@ -1,0 +1,23 @@
+- name: Create directory for WordPress
+  file:
+    path: "/var/www/dev.menta.me"
+    state: directory
+
+- name: Download WordPress archive
+  get_url:
+    url: "{{ item }}"
+    dest: "/var/www/dev.menta.me/"
+  loop:
+    - "{{ Wordpress_VERSION }}"
+
+- name: Extract WordPress archive
+  ansible.builtin.unarchive:
+    src: "/var/www/dev.menta.me/wordpress-6.4.3-ja.tar.gz"
+    dest: "/var/www/dev.menta.me"
+    remote_src: yes
+    extra_opts: --strip-components=1
+  notify: restart nginx
+
+- name: wordpress chown nginx
+  file: path=/var/www/dev.menta.me/ owner=nginx group=nginx recurse=yes
+  notify: restart nginx

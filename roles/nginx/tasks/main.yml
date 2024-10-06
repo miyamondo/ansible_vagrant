@@ -1,0 +1,30 @@
+###nginx task main.yml###
+- name: copy nginx.repo
+  copy:
+    src: "{{ item.src }}"
+    dest: "/etc/yum.repos.d/{{ item.dest }}"
+    backup: no
+    owner: root
+    group: root
+  with_items:
+    - { src: roles/nginx/files/nginx.repo, dest: . }
+
+- name: install nginx
+  yum: name={{ item }} state=installed
+  loop:
+  - nginx
+
+- name: start nginx
+  service: name=nginx enabled=yes state=started
+
+- name: copy nginx conf
+  copy:
+    src: "{{ item.src }}"
+    dest: "/etc/nginx/{{ item.dest }}"
+    backup: no
+    owner: root
+    group: root
+  loop:
+    - { src: roles/nginx/files/dev.menta.me.conf, dest: ./conf.d/ }
+    - { src: roles/nginx/files/nginx.conf, dest: . }
+  notify: restart nginx
