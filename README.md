@@ -121,7 +121,7 @@ become = True
 ```
 
 # 構文チェック
-ansible-playbook main.yml --syntax-check
+ansible-playbook wordpress.yml --syntax-check
 
 # playbook実行
-ansible-playbook main.yml
+ansible-playbook wordpress.yml
